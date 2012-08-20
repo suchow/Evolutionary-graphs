@@ -70,18 +70,13 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
   % A path from vertex 1 to N
   case 'Path'
     w = sparse(N,N);
-    for i = 1:(N-1)
-      w(i,i+1) = true;
-    end
-    w(N,N) = true;
-
+    w = addlinks(w, 1:N, min(2:(N+1),N));
 
   % A directed cycle created by having the snake eat its tail
   case 'Cycle'
-    w = MakeAdjacencyMatrix('Path',N);
-    w(N,N) = false;
-    w(N,1) = true; 
-    
+    w = sparse(N,N);
+    w = linktoneighbors(w,1);
+
 
   case 'Star'
     w = sparse(N,N);
@@ -187,4 +182,13 @@ end
 
 function y = rownormalize(x)
   y = bsxfun(@times, x, 1./(sum(x, 2)));
+end
+
+function w = addlinks(w,from,to)
+  w(sub2ind(size(w),from,to)) = true;
+end
+
+function w = linktoneighbors(w,t)
+  N = length(w);
+  w = addlinks(w,1:N,1+mod(t+[0:(N-1)],N));
 end
