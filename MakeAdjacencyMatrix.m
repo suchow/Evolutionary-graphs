@@ -191,4 +191,7 @@ end
 function w = linktoneighbors(w,t)
   N = length(w);
   w = addlinks(w,1:N,1+mod(t+[0:(N-1)],N));
+  for i = 1:length(t)
+    w = addlinks(w,1:N,1+mod(t(i)+[0:(N-1)],N));
+  end
 end
