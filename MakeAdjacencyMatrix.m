@@ -100,7 +100,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
   % Uses the Barabasi-Albert model to construct a scale free network with
   % scaling exponent 3. We seed it with m_0 = 2 nodes, and an edge from 
   % node 1 to node 2 and back. Each step connects a new node to two existing
-  % nodes with probability proprtional
+  % nodes with probability proprtional to their degree
   case 'Scale free'
     w = sparse(N,N);
     w(1,2) = true;
@@ -157,7 +157,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = rownormalize(w);
     
   case 'Konigsberg'
-    w = zeros(4,4);
+    w = sparse(4,4);
     w(1,2) = 2;
     w(2,1) = 2;
     w(1,3) = 2;
