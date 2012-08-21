@@ -137,23 +137,34 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = rownormalize(w);
     
   % From Mertzios et al. (2012)  
+  % case 'Clique wheel'
+  %   w = sparse(N,N);
+  %   n = N/2;
+  %   for i = 1:n % link inner to outer wheel
+  %     w(i,n+i) = true;
+  %     w(n+i,i) = true;
+  %   end
+  %   for i = 1:(n-1)
+  %     w(i,i+1) = true; % inner links
+  %     w(i+1,i) = true;  
+  %     w(n+i,n+i+1) = true; % outer links
+  %     w(n+i+1,n+i) = true;
+  %   end
+  %   w(1,n) = true; % tie together inner
+  %   w(n,1) = true;
+  %   w(N,n+1) = true; % tie together outer
+  %   w(n+1,N) = true;
+  %   w = rownormalize(w);
+  
   case 'Clique wheel'
     w = sparse(N,N);
     n = N/2;
+    w(1:n,1:n) = linktoneighbors(w(1:n,1:n),[1,-1]);
+    w((n+1):N,(n+1):N) = linktoneighbors(w((n+1):N,(n+1):N),[1,-1]);
     for i = 1:n % link inner to outer wheel
       w(i,n+i) = true;
       w(n+i,i) = true;
     end
-    for i = 1:(n-1)
-      w(i,i+1) = true; % inner links
-      w(i+1,i) = true;  
-      w(n+i,n+i+1) = true; % outer links
-      w(n+i+1,n+i) = true;
-    end
-    w(1,n) = true; % tie together inner
-    w(n,1) = true;
-    w(N,n+1) = true; % tie together outer
-    w(n+1,N) = true;
     w = rownormalize(w);
     
   case 'Konigsberg'
