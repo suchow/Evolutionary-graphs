@@ -120,7 +120,22 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       w(n2,i) = true;
     end
     w = rownormalize(w);
-    
+  
+  % Barabasi-Albert Model A (growth, but no preferential attachment)
+  case 'Model A'
+    w = sparse(N,N);
+    w(1,2) = true;
+    w(2,1) = true;
+    w(3,1) = true;
+    w(1,3) = true;
+    for i = 4:N
+      x = shuffle(1:(i-1))
+      w(i,x(1)) = true;                    % link up the chosen nodes
+      w(x(1),i) = true;
+      w(i,x(2)) = true;
+      w(x(2),i) = true;
+    end
+    w = rownormalize(w);
   
   case 'Friendship'
     numMills = (N - 1) / 2;
