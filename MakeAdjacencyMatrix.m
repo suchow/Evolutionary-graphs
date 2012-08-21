@@ -170,9 +170,30 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w(4,2) = 1;
     w = rownormalize(w);
 
-  % TODO list:
   % Watts and Strogatz model
-  %
+  case 'Watts-Strogatz'
+    if(nargin < 3)
+      p = 0.5;
+    else
+      p = varargin{1}/2;
+    end
+    w = sparse(N,N);
+    w = linktoneighbors(w,[1,2,-1,-2]);
+    % random rewiring
+    [i,j] = find(w);
+    for k = 1:length(i)
+      if((rand < p) & (j > i))
+        % break the old link between i and j
+        w(i(k),j(k)) = false;
+        w(j(k),i(k)) = false;
+        % choose a new target
+        newTarget = randi(N);
+        % create link from i to target
+        w(i(k),newTarget) = true;
+        w(newTarget,i(k)) = true;
+      end
+    end
+    w = rownormalize(w);
 
   otherwise
     error('This graph type is not supported.')
