@@ -226,7 +226,31 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       end
     end
     w = rownormalize(w);
-
+      
+  
+  % scale free model with gaussian fitness, as in Bianconi & Barabasi
+  case 'Scale free (GF)'
+    w = sparse(N,N);
+    mu = 1; % mean log fitness
+    sd = 2; % sd of log fitness
+    f = lognrnd(mu,sd,1,N);
+    w(1,2) = true;
+    w(2,1) = true;
+    w(3,1) = true;
+    w(1,3) = true;
+    for i = 4:N
+      p_i = rownormalize(f .* rownormalize(sum(full(w)'))); % count edges
+      n1 = find(mnrnd(1, p_i));          % pick first node
+      p_i(n1) = 0;                       % disallow repeat (w/o replacement)
+      p_i = rownormalize(p_i);           % renormalize
+      n2 = find(mnrnd(1, p_i));          % pick second node
+  
+      w(i,n1) = true;                    % link up the chosen nodes
+      w(n1,i) = true;
+      w(i,n2) = true;
+      w(n2,i) = true;
+    end
+    w = rownormalize(w);
   otherwise
     error('This graph type is not supported.')
     
