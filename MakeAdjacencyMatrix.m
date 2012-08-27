@@ -122,21 +122,23 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     end
     w = rownormalize(w);
   
+  
   % Barabasi-Albert Model A (growth, but no preferential attachment)
   case 'Model A'
     w = sparse(N,N);
-    w(1,2) = true;
+    w(1,2) = true; % initialize with 3 nodes
     w(2,1) = true;
     w(3,1) = true;
     w(1,3) = true;
     for i = 4:N
-      x = shuffle(1:(i-1))
-      w(i,x(1)) = true;                    % link up the chosen nodes
+      x = shuffle(1:(i-1));
+      w(i,x(1)) = true;  % link up the chosen nodes
       w(x(1),i) = true;
       w(i,x(2)) = true;
       w(x(2),i) = true;
     end
     w = rownormalize(w);
+  
   
   case 'Friendship'
     numMills = (N - 1) / 2;
@@ -151,6 +153,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       w(1,2*i+1) = true;
     end
     w = rownormalize(w);
+    
     
   % From Mertzios et al. (2012)  
   % case 'Clique wheel'
@@ -183,6 +186,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     end
     w = rownormalize(w);
     
+    
   case 'Konigsberg'
     w = sparse(4,4);
     w(1,2) = 2;
@@ -196,6 +200,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w(2,4) = 1;
     w(4,2) = 1;
     w = rownormalize(w);
+
 
   % Watts and Strogatz model
   case 'Watts-Strogatz'
