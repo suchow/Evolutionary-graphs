@@ -22,10 +22,11 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w((n+1):N,1:n) = 1;
     w = rownormalize(w);
   
+  
   % The G(n, p) Erdős–Rényi model proposed in Edgar Gilbert's 1959 "Random
   % graphs", except with no isolated vertices. Defaults to p = 0.5 unless
   % specified as an argument to MakeAdjacencyMatrix.
-  case 'Random'
+  case 'Erdos-Renyi'
     if(length(varargin) < 1)
       p = 0.5;
     else
