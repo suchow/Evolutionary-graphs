@@ -43,8 +43,8 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
 
   % Square lattice connected to its von Neumann neighborhood
   case 'Square lattice 4'
-    r = sqrt(N);
-    c = sqrt(N);
+    r = floor(sqrt(N));
+    c = floor(sqrt(N));
     diag1 = repmat([ones(c-1,1); 0],r,1);  
     diag1 = diag1(1:end-1);
     diag2 = ones(c*(r-1),1);
@@ -55,8 +55,8 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
 
   % Square lattice connected to its Moore neighborhood
   case 'Square lattice 8'
-    r = sqrt(N);
-    c = sqrt(N);
+    r = floor(sqrt(N));
+    c = floor(sqrt(N));
     diag1 = repmat([ones(c-1,1); 0],r,1);
     diag1 = diag1(1:end-1);            
     diag2 = [0; diag1(1:(c*(r-1)))]; 
