@@ -312,6 +312,12 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       w = MakeAdjacencyMatrix('Random regular', N, d);
     end    
     w = rownormalize(w);
+    
+
+  % Every node is an island
+  case 'Isolated'
+    w = speye(N,N);
+    
   
   otherwise
     error('This graph type is not supported.')
