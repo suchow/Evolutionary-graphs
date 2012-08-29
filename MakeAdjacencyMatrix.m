@@ -232,6 +232,44 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       w(n2,i) = true;
     end
     w = rownormalize(w);
+  % Random regular graph (each node has the same number of edges)
+  % Uses the method of Kim & Vu (2006)
+  case 'Random regular'
+    if(nargin < 3) % the degree
+      d = 2; 
+    else
+      d = varargin{1}; 
+    end
+    w = sparse(N,N);
+    tmp = repmat([1:N],d,1);
+    U = tmp(:)';
+    Uw = sparse(N,N); % keep track of who we have linked
+    pairings = [];
+    % counter = 0;
+    while(length(U) > 0)
+      % counter = counter + 1
+      ij = randsample(length(U),2); % choose two random points from U
+      i = U(ij(1));
+      j = U(ij(2));
+      % check if the pair is suitable:
+      isLoop = (i==j);
+      isParallel = Uw(i,j);
+      suitable = ~isLoop & ~isParallel;
+      if(suitable)
+        Uw(i,j) = true;
+        Uw(j,i) = true;
+        U([ij(1),ij(2)]) = [];
+      end
+    end
+     % if Uw is regular, output it
+    isRegular = all(sum(Uw) == d) & all(sum(Uw') == d);
+    if(isRegular)
+      w = Uw;
+    else
+      w = MakeAdjacencyMatrix('Random regular', N, d);
+    end    
+    w = rownormalize(w);
+  
   otherwise
     error('This graph type is not supported.')
     
