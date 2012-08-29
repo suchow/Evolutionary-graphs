@@ -232,6 +232,20 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       w(n2,i) = true;
     end
     w = rownormalize(w);
+    
+    
+  % Randomly diluted lattice, from Dhar et al. (1987)
+  % removes nodes indepdendently with probability p
+  case 'Diluted square lattice 4'
+    if(nargin < 3)
+      p = 0.75;
+    else
+      p = varargin{1};
+    end
+    w =  MakeAdjacencyMatrix('Square lattice 4', N) > 0;
+    w = dilute(w,p);
+    w = rownormalize(w);
+  
   % Random regular graph (each node has the same number of edges)
   % Uses the method of Kim & Vu (2006)
   case 'Random regular'
