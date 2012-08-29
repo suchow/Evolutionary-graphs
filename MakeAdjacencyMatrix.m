@@ -246,6 +246,17 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = dilute(w,p);
     w = rownormalize(w);
   
+  
+  case 'Diluted square lattice 8'
+    if(nargin < 3)
+      p = 0.75;
+    else
+      p = varargin{1};
+    end
+    w =  MakeAdjacencyMatrix('Square lattice 8', N) > 0;
+    w = dilute(w,p);
+    w = rownormalize(w);
+    
   % Random regular graph (each node has the same number of edges)
   % Uses the method of Kim & Vu (2006)
   case 'Random regular'
