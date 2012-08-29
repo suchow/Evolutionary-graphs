@@ -315,3 +315,13 @@ function w = linktoneighbors(w,t)
     w = addlinks(w,1:N,1+mod(t(i)+[0:(N-1)],N));
   end
 end
+
+% remove links with probably p, and relink isolated nodes to self
+function w = dilute(w,p)
+  kill = rand(1,length(w)) < 1-p;
+  w(kill,:) = [];
+  w(:,kill) = [];
+  % link isolated nodes to self
+  islands = ~sum(w);
+  w = diag(islands) | w;
+end
