@@ -257,6 +257,24 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = dilute(w,p);
     w = rownormalize(w);
     
+    
+  % The Bethe lattice, also called the Cayley tree, from Bethe (1935)
+  case 'Bethe lattice'
+    k = varargin{1};
+    w = sparse(N,N);
+    i = 1;
+    newNode = 3;
+    w(1,2) = true; % link up the first node
+    w(2,1) = true;
+    while(newNode <= N)
+      for j = 1:(k-1)
+        w(i,newNode) = true;
+        w(newNode,1) = true;
+        newNode = newNode + 1;
+      end
+      i = i + 1;
+    end
+  
   % Random regular graph (each node has the same number of edges)
   % Uses the method of Kim & Vu (2006)
   case 'Random regular'
