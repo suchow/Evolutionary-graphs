@@ -3,12 +3,14 @@
 function w = MakeAdjacencyMatrix(graphType,N,varargin)
   
   switch graphType
-  
 
   % Complete graph with identically-weighted edges, as in the Moran Process
   case 'Complete'
-    w = 1/N .* ones(N);
-    
+    if(N == 1)
+      w = [1];
+    else
+      w = ~diag([1:N])./(N-1);
+    end  
   
   % A complete bipartite graph
   case 'Complete bipartite'
