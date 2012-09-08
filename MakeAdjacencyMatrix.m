@@ -317,6 +317,27 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
   % Every node is an island
   case 'Isolated'
     w = speye(N,N);
+  % Constructs a graph using the Luce choice axiom
+  case 'Luce'    
+    w = sparse(N,N);
+    m = varargin{1};
+    L = varargin{2};
+    % start with a complete graph with m nodes
+    w(1:(m+1),1:(m+1)) = MakeAdjacencyMatrix('Complete', m+1);    
+    for i = (m+2):N
+      used = [];
+      for j = 1:m
+        d = rownormalize(full(sum(w))); % find degree of each node
+        p = zeros(1,N);
+        p(d>0) = d(d>0).^L; % raise each to the Lth power
+        p(used) = 0;
+        x = find(mnrnd(1,p./sum(p))); % pick a node
+        used = [used x];
+        w(i,x) = true;
+        w(x,i) = true;
+      end
+    end
+    w = rownormalize(w);
     
   
   otherwise
