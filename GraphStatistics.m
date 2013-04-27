@@ -1,19 +1,49 @@
-% takes in an adjacency
+% takes in an adjacency matrix and returns graph stats
 function stats = GraphStatistics(w,nargin)
-  stats.C = ClusteringCoefficient(w);
-end
-
-% the average local clustering coefficient
-function C = ClusteringCoefficient(w)
-  for i = 1:length(w) % find the neighbors
+  
+  %
+  % Local clustering coefficient
+  %
+  parfor i = 1:length(w) % find the neighbors
     neighborhood = find(w(i,:));
-    neighborhood(ismember(neighborhood, i)) = [];
     numNeighbors = length(neighborhood);
+    neighborhood(ismember(neighborhood, i)) = [];
     maxEdges(i) = numNeighbors * (numNeighbors - 1);
     combos = combnk(neighborhood, 2);
     neighborhoodPairInds = sub2ind(size(w), [combos(:,1); combos(:,2)], ...
                                             [combos(:,2); combos(:,1)]);
     actualEdges(i) = full(sum(w(neighborhoodPairInds) > 0));                               
   end
-  C = mean(actualEdges ./ maxEdges);
+  stats.clusteringCoefficient = mean(actualEdges ./ maxEdges);
+  
+  %
+  % All path lengths (full matrix)
+  %
+  stats.allPathLengths = pathlength(w);
+  
+  %
+  % Characteristic path length
+  %
+  stats.characteristicPathLength = ...
+      full(mean(stats.allPathLengths(~eye(size(w)))));
+  
+  %
+  % Average degree
+  %
+  stats.averageDegree = full(mean(sum(w'>0)));
+  
+  %
+  % All degrees
+  %
+  stats.allDegrees = full(sum(w'>0));
+  
+  %
+  % Degree distribution
+  %
+  stats.degreeDistribution = histc(stats.allDegrees,1:size(w,1));
+  
+  %
+  % PageRanks
+  %
+  stats.pageRank = pagerank(w');
 end
