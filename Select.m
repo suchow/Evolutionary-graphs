@@ -1,9 +1,13 @@
 % frequency dependent selection with parameter tau that determines the 
 % strength of selection. tau is not yet implemented.
-function i = Select(population, tau)
+function i = Select(population, tau, threshold)
 
     if(nargin < 2)
         tau = 0;
+    end
+    
+    if(nargin < 3)
+      threshold = 1;
     end
 
     if(tau ~= 0)
@@ -13,6 +17,6 @@ function i = Select(population, tau)
     end
 
     if(tau == 0) % neutral selection
-        i = randi(size(population.graph,1));
+      i = randsample(find(~whererare(population.tags,threshold)));
     end
 end
