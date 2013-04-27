@@ -1,6 +1,10 @@
 % Builds a function that, given indices i,j < N, returns the transition
-% probability for a graph of type graphType with N nodes.
-function w = MakeAdjacencyMatrix(graphType,N,varargin)
+% probability for a graph of type graphType with N nodes. The available
+% graphTypes include:
+%   Complete graph
+%   ...
+%
+function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
   
   switch graphType
 
@@ -52,7 +56,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     diag2 = ones(c*(r-1),1);
     w = diag(diag1,1) + diag(diag2,c);
     w = w+w.';  
-    w = rownormalize(w);  
+    w = sparse(rownormalize(w));  
 
 
   % Square lattice connected to its Moore neighborhood
@@ -67,7 +71,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = diag(diag1,1) + diag(diag2,c-1) + ...
         diag(diag3,c) + diag(diag4,c+1);
     w = w+w.';                    
-    w = rownormalize(w);  
+    w = sparse(rownormalize(w));  
           
 
   % A path from vertex 1 to N
@@ -110,13 +114,14 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w(2,1) = true;
     w(3,1) = true;
     w(1,3) = true;
+    w(2,3) = true;
+    w(3,2) = true;
     for i = 4:N
       p_i = rownormalize(sum(full(w)')); % count edges
       n1 = find(mnrnd(1, p_i));          % pick first node
       p_i(n1) = 0;                       % disallow repeat (w/o replacement)
       p_i = rownormalize(p_i);           % renormalize
       n2 = find(mnrnd(1, p_i));          % pick second node
-
       w(i,n1) = true;                    % link up the chosen nodes
       w(n1,i) = true;
       w(i,n2) = true;
@@ -143,6 +148,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
   
   
   case 'Friendship'
+    % there's a bug in this, it's returning NaNs
     numMills = (N - 1) / 2;
     w = sparse(N,N);
     w(1,2:end) = true;
@@ -186,6 +192,8 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
 
 
   % Watts and Strogatz model
+  % note: this algorithm uses a different order for rewiring.
+  % ** extend to arbitrary k
   case 'Watts-Strogatz'
     if(nargin < 3)
       p = 0.5;
@@ -197,7 +205,7 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     % random rewiring
     [i,j] = find(w);
     for k = 1:length(i)
-      if((rand < p) & (j > i))
+      if((rand < p) & (j(k) > i(k)))
         % break the old link between i and j
         w(i(k),j(k)) = false;
         w(j(k),i(k)) = false;
@@ -260,9 +268,16 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
     w = rownormalize(w);
     
     
+  % ADD: random grid from Nowak's 1994 paper 'More spatial games'
+  % case 'Random grid'
+    
   % The Bethe lattice, also called the Cayley tree, from Bethe (1935)
   case 'Bethe lattice'
-    k = varargin{1};
+    if(nargin < 3)
+      k = 3;
+    else
+      k = varargin{1};
+    end
     w = sparse(N,N);
     i = 1;
     newNode = 3;
@@ -276,12 +291,14 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
       end
       i = i + 1;
     end
+    w = rownormalize(w);
+    
   
   % Random regular graph (each node has the same number of edges)
   % Uses the method of Kim & Vu (2006)
   case 'Random regular'
     if(nargin < 3) % the degree
-      d = 2; 
+      d = 3; 
     else
       d = varargin{1}; 
     end
@@ -319,41 +336,85 @@ function w = MakeAdjacencyMatrix(graphType,N,varargin)
   % Every node is an island
   case 'Isolated'
     w = speye(N,N);
+  
+  % ADD: pseudofractal scale-free web
+  % http://arxiv.org/pdf/cond-mat/0112143v1.pdf
+  
   % Constructs a graph using the Luce choice axiom
-  % L can be an XRP
+  % L can be an XRP or Inf.
   case 'Luce'    
     w = sparse(N,N);
     m = varargin{1};
     L = varargin{2};
+    if(nargin < 5)
+      v_function = @(w)(rownormalize(full(sum(w))));
+    else
+      v_function = varargin{3};
+    end
+    %v_function = @(w)(pagerank(w')');
     if(isnumeric(L))
       L = @()(L);
     end
     % start with a complete graph with m nodes
-    w(1:(m+1),1:(m+1)) = MakeAdjacencyMatrix('Complete', m+1);    
+    w(1:(m+1),1:(m+1)) = MakeAdjacencyMatrix('Complete', m+1);
+    personalL = nan(1,N);  
     for i = (m+2):N
+      if(N>10000 & ~mod(i,100))
+        fprintf('%d\n',i)
+      end
       used = [i];
+      personalL(i) = L(); % each individual gets assigned a value of L
       for j = 1:m
-        d = rownormalize(full(sum(w))); % find degree of each node
+        v = v_function(w(1:(i-1),1:(i-1))); % find value of each node
         p = zeros(1,N);
-        p(d>0) = d(d>0).^L(); % raise each to the Lth power
-        p(used) = 0;
-        x = find(mnrnd(1,p./sum(p))); % pick a node
+        if(isinf(personalL(i)))
+          v_tmp = v;
+          if(personalL(i) > 0) % +Inf case
+            v_tmp(used) = 0;
+            ms = (v_tmp==max(v_tmp));
+          else % -Inf case
+            v_tmp(~v_tmp) = Inf;
+            v_tmp(used) = Inf;
+            ms = (v_tmp==min(v_tmp));
+          end
+          p(ms) = 1./sum(ms);
+        else % -Inf < L < Inf case
+          p(v>0) = v(v>0).^personalL(i); % raise each to the Lth power
+          p(used) = 0;
+          p = p./sum(p);
+        end
+        x = find(mnrnd(1,p)); % pick a node
         used = [used x];
         w(i,x) = true;
         w(x,i) = true;
       end
     end
     w = rownormalize(w);
+    varargout{1} = personalL;
     
+  
+  case 'Visual'
+    r = floor(sqrt(N));
+    c = floor(sqrt(N));
+    N = r*c;
+    %h = varargin{1};
+    h = 3;
+    w = zeros(N,N);
+    for i = 1:r
+      for j = 1:c
+        [x,y] = meshgrid(1:r,1:c);
+        d = ((x-i).^2 + (y-j).^2).^0.5; % compute distance
+        d2 = exp(1).^-(d.^2/(2*h.^2)); % compute strength of connection
+        w(sub2ind([r,c],i,j),:) = d2(:)';
+      end
+    end
+    w(diag(1:N)>0) = 0;
+    w = rownormalize(w);    
   
   otherwise
     error('This graph type is not supported.')
     
   end
-end
-
-function y = rownormalize(x)
-  y = bsxfun(@times, x, 1./(sum(x, 2)));
 end
 
 function w = addlinks(w,from,to)
@@ -375,4 +436,8 @@ function w = dilute(w,p)
   % link isolated nodes to self
   islands = ~sum(w);
   w = diag(islands) | w;
+end
+
+function r = mnrnd(n,p)
+    r = find(rand < cumsum(p),1); 
 end
