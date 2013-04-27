@@ -6,5 +6,8 @@ function population = MakePopulation(N,graphType,varargin)
     end
 
     population.graphType = graphType;
-    population.graph = MakeAdjacencyMatrix(graphType,N);
+    population.graph = MakeAdjacencyMatrix(graphType,N,varargin{:});
+    population.N = size(population.graph,1);
+    population.anyMutations = false;
+    population.maxMutation = N;
 end
