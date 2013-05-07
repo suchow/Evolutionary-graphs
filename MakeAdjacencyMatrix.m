@@ -11,9 +11,9 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
   % Complete graph with identically-weighted edges, as in the Moran Process
   case 'Complete'
     if(N == 1)
-      w = [1];
+      w = 1;
     else
-      w = ~diag([1:N])./(N-1);
+      w = ~diag(1:N)./(N-1);
     end  
   
   % A complete bipartite graph
@@ -39,7 +39,6 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
       p = varargin{1};
     end
     w = sparse(N,N);
-    done = false;
     while(~all(sum(w,2) ~= 0)) % resample all empty rows
       emptyRows = (sum(w,2) == 0);
       w(emptyRows,:) = (rand(sum(emptyRows),N) < p);    
@@ -118,10 +117,10 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
     w(3,2) = true;
     for i = 4:N
       p_i = rownormalize(sum(full(w)')); % count edges
-      n1 = find(mnrnd(1, p_i));          % pick first node
+      n1 = randp(p_i);          % pick first node
       p_i(n1) = 0;                       % disallow repeat (w/o replacement)
       p_i = rownormalize(p_i);           % renormalize
-      n2 = find(mnrnd(1, p_i));          % pick second node
+      n2 = randp(p_i);          % pick second node
       w(i,n1) = true;                    % link up the chosen nodes
       w(n1,i) = true;
       w(i,n2) = true;
@@ -148,7 +147,9 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
   
   
   case 'Friendship'
-    % there's a bug in this, it's returning NaNs
+    if(~mod(N,2)) % if odd
+      error('Friendship graph must have an odd number of vertices');
+    end
     numMills = (N - 1) / 2;
     w = sparse(N,N);
     w(1,2:end) = true;
@@ -205,7 +206,7 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
     % random rewiring
     [i,j] = find(w);
     for k = 1:length(i)
-      if((rand < p) & (j(k) > i(k)))
+      if((rand < p) && (j(k) > i(k)))
         % break the old link between i and j
         w(i(k),j(k)) = false;
         w(j(k),i(k)) = false;
@@ -231,10 +232,10 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
     w(1,3) = true;
     for i = 4:N
       p_i = rownormalize(f .* rownormalize(sum(full(w)'))); % count edges
-      n1 = find(mnrnd(1, p_i));          % pick first node
+      n1 = randp(p_i);          % pick first node
       p_i(n1) = 0;                       % disallow repeat (w/o replacement)
       p_i = rownormalize(p_i);           % renormalize
-      n2 = find(mnrnd(1, p_i));          % pick second node
+      n2 = randp(p_i);          % pick second node
   
       w(i,n1) = true;                    % link up the chosen nodes
       w(n1,i) = true;
@@ -303,16 +304,14 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
       d = varargin{1}; 
     end
     w = sparse(N,N);
-    tmp = repmat([1:N],d,1);
+    tmp = repmat(1:N,d,1);
     U = tmp(:)';
     Uw = sparse(N,N); % keep track of who we have linked
     pairings = [];
-    % counter = 0;
-    while(length(U) > 0)
-      % counter = counter + 1
-      ij = randsample(length(U),2); % choose two random points from U
-      i = U(ij(1));
-      j = U(ij(2));
+    while(~isempty(U))
+      ord = shuffle(1:length(U));
+      i = U(ord(1));
+      j = U(ord(2));
       % check if the pair is suitable:
       isLoop = (i==j);
       isParallel = Uw(i,j);
@@ -320,7 +319,7 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
       if(suitable)
         Uw(i,j) = true;
         Uw(j,i) = true;
-        U([ij(1),ij(2)]) = [];
+        U([ord(1) ord(2)]) = [];
       end
     end
      % if Uw is regular, output it
@@ -359,10 +358,10 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
     w(1:(m+1),1:(m+1)) = MakeAdjacencyMatrix('Complete', m+1);
     personalL = nan(1,N);  
     for i = (m+2):N
-      if(N>10000 & ~mod(i,100))
+      if(N>10000 && ~mod(i,100))
         fprintf('%d\n',i)
       end
-      used = [i];
+      used = i;
       personalL(i) = L(); % each individual gets assigned a value of L
       for j = 1:m
         v = v_function(w(1:(i-1),1:(i-1))); % find value of each node
@@ -383,7 +382,7 @@ function [w,varargout] = MakeAdjacencyMatrix(graphType,N,varargin)
           p(used) = 0;
           p = p./sum(p);
         end
-        x = find(mnrnd(1,p)); % pick a node
+        x = randp(p); % pick a node
         used = [used x];
         w(i,x) = true;
         w(x,i) = true;
@@ -424,7 +423,7 @@ end
 function w = linktoneighbors(w,t)
   N = length(w);
   for i = 1:length(t)
-    w = addlinks(w,1:N,1+mod(t(i)+[0:(N-1)],N));
+    w = addlinks(w,1:N,1+mod(t(i)+(0:(N-1)),N));
   end
 end
 
@@ -436,8 +435,4 @@ function w = dilute(w,p)
   % link isolated nodes to self
   islands = ~sum(w);
   w = diag(islands) | w;
-end
-
-function r = mnrnd(n,p)
-    r = find(rand < cumsum(p),1); 
 end
