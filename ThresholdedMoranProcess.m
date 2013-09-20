@@ -2,7 +2,7 @@ function history = ThresholdedMoranProcess(N,K,numSteps,graphType,threshold)
   
   % default graph is complete
   if(nargin < 4)
-    graphType = 'Complete';
+    graphType = {'Complete'};
   end
   
   if(nargin < 5)
@@ -11,7 +11,7 @@ function history = ThresholdedMoranProcess(N,K,numSteps,graphType,threshold)
   
   % initialize the population
   population = MakePopulation(N,graphType{1},graphType{2:end});
-  population = Endow(population,K,true,'spread');
+  population = Endow(population,K,false,'random');
   
   % run the process
   for stepIndex = 1:(numSteps+1)

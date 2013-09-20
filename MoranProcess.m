@@ -7,7 +7,6 @@ function history = MoranProcess(N,K,numSteps,graphType)
   
   % initialize the population
   population = MakePopulation(N,graphType{1},graphType{2:end});
-  population = Endow(population,K,true);
   population = Endow(population,K,false,'random');
   
   % run the process
