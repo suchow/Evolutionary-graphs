@@ -3,7 +3,7 @@
 % the forgetting function and fidelity function at various set sizes.
 %
 function results = simulation1
-  
+
   N = 63;
   Ks = [1,2,3,4];
   numSteps = 1000;
@@ -13,9 +13,8 @@ function results = simulation1
   % graphTypes = {'Complete', {'Visual',N,1}, 'Square lattice 4', 'Cycle', ...
   %                'Scale free', 'Erdos-Renyi', 'Square lattice 8', 'Star', ...
   %                'Burst', 'Integrator', 'Model A', 'Clique wheel', ...
-  %                'Bethe lattice', 'Random regular'} 
-  % friendship
-  
+  %                'Bethe lattice', 'Random regular'}
+
   %
   % Run the simulation
   %
@@ -26,7 +25,7 @@ function results = simulation1
     else
       thisGraphType = graphTypes{q};
     end
-        
+
     for kIndex = 1:length(Ks);
       K = Ks(kIndex);
       % preallocate for speed
@@ -36,17 +35,17 @@ function results = simulation1
       for j = 1:numIterations
         history{j} = ThresholdedMoranProcess(N,K,numSteps,thisGraphType,16);
         % compute stats for this iteration
-        [numRemembered(:,j), precision(:,j)] = GetForgettingFunction(history{j}); 
+        [numRemembered(:,j), precision(:,j)] = GetForgettingFunction(history{j});
       end
-      
+
       results.mean(q) = mean(numRemembered(end,:));
       results.sd(q) = std(numRemembered(end,:))./sqrt(numIterations)
-        
+
       fprintf('%s\n', thisGraphType{1})
       fprintf('events: %2.2f, precision: %2.2f\n\n', ...
               mean(numRemembered(end,:)), ...
-              mean(precision(end,:)))                          
-                  
+              mean(precision(end,:)))
+
       colors = palettablecolors(length(Ks));
 
       % plot timecourse of number remembered
@@ -59,7 +58,7 @@ function results = simulation1
       if(q == 1), ylabel('Number of remembered events'); end
       makepalettable
 
-      % plot timecourse of 
+      % plot timecourse of
       subplot(2,length(graphTypes),length(graphTypes)+q)
       plot(mean(precision,2), 'Color', colors(kIndex,:), ...
           'LineWidth', 1.5, 'LineSmoothing', 'off');

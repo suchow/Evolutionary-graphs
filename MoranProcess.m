@@ -1,16 +1,14 @@
-function history = MoranProcess(N,K,numSteps,graphType)
-  
 function history = MoranProcess(N,K,numSteps,graphType, policy)
 
   % default graph is complete
   if(nargin < 4)
-    graphType = 'Complete';
+    graphType = {'Complete'};
   end
-  
+
   % initialize the population
   population = MakePopulation(N,graphType{1},graphType{2:end});
   population = Endow(population,K,false,'random');
-  
+
   % run the process
   history = cell(1,numSteps);
   for stepIndex = 1:(numSteps+1)
@@ -27,10 +25,10 @@ function history = MoranProcess(N,K,numSteps,graphType, policy)
     j = randp(full(population.graph(i,:)));
 
     % record the history
-    history{stepIndex} = population; 
+    history{stepIndex} = population;
     history{stepIndex}.death = j;
     history{stepIndex}.reproduce = i;
-    
+
     % replace the individual
     population.tags(j) = population.tags(i);
     population.memories(j,:) = population.memories(i,:);
