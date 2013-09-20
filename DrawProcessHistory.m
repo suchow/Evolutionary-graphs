@@ -4,8 +4,8 @@ function DrawProcessHistory(history)
   numTypes = length(allTypes);
   colors = palettablecolors(numTypes);
   initialN = history{1}.N;
-  xscale = 0.15;
-  yscale = 0.135;
+  xscale = 0.14;
+  yscale = 0.15;
   markerSize = 20;
   fig = figure('Visible', 'off', 'PaperSize', [initialN*xscale,numSteps*yscale]);
   for i = 1:(numSteps+1)
@@ -19,18 +19,18 @@ function DrawProcessHistory(history)
         thisTypeNumber = find(allTypes == history{i}.tags(j));
         color = colors(thisTypeNumber,:);
       end
-      plot(j, 1-i, '.', 'MarkerSize',markerSize,'Color',color);
+      plot(j, -i, '.', 'MarkerSize',markerSize,'Color',color);
       hold on;
     end
     % draw all deaths
     death = history{i}.death;
     for j = 1:length(death)
-      plot(death(j), 1-i, '.', 'MarkerSize',markerSize-(markerSize*0.5),'Color',[1,1,1]);
+      plot(death(j), -i, '.', 'MarkerSize',markerSize-(markerSize*0.5),'Color',[1,1,1]);
     end
     % draw all reproductions
     reproduce = history{i}.reproduce;
     for j = 1:length(reproduce)
-      plot(reproduce(j), 1-i, '+', 'MarkerSize',2.5,'Color',[1,1,1]);
+      plot(reproduce(j), -i, '+', 'MarkerSize',2.5,'Color',[1,1,1]);
     end
   end
   grid off
