@@ -1,22 +1,10 @@
-% frequency dependent selection with parameter tau that determines the 
+% frequency dependent selection with parameter tau that determines the
 % strength of selection. tau is not yet implemented.
-function i = Select(population, tau, threshold)
+function i = Select(population, policy)
 
-    if(nargin < 2)
-        tau = 0;
-    end
-    
-    if(nargin < 3)
-      threshold = 1;
-    end
-
-    if(tau ~= 0)
-        warning(['Frequency-dependent selection is not yet availble. ' ...
-                 'Defaulting to neutral selection.'])
-        tau = 0;
-    end
-
-    if(tau == 0) % neutral selection
-      i = randsample(find(~whererare(population.tags,threshold)));
-    end
+  if(nargin < 2)
+    i = randsample(find(~whererare(population.tags,1)));
+  else
+    i = policy(population);
+  end
 end

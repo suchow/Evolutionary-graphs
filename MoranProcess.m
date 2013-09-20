@@ -1,5 +1,7 @@
 function history = MoranProcess(N,K,numSteps,graphType)
   
+function history = MoranProcess(N,K,numSteps,graphType, policy)
+
   % default graph is complete
   if(nargin < 4)
     graphType = 'Complete';
@@ -12,10 +14,14 @@ function history = MoranProcess(N,K,numSteps,graphType)
   % run the process
   history = cell(1,numSteps);
   for stepIndex = 1:(numSteps+1)
-    
+
     % select an individual with probability proportional to fitness
-    i = Select(population,0);
-    
+    if(nargin < 5)
+      i = Select(population);
+    else
+      i = Select(population, policy);
+    end
+
     % look at the selected individual's outgoing edges, and choose
     % another individual who this individual's offspring will replace
     j = randp(full(population.graph(i,:)));
